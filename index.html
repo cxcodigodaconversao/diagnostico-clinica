@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Diagnóstico Estratégico de Expansão — Rise Alta Conversão</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -864,104 +865,220 @@ function renderGargalos(avgs){
 
 // ── EXPORT PDF ──
 function exportPDF(){
+  if(typeof window.jspdf==='undefined'){
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    s.onload=()=>exportPDF();
+    document.head.appendChild(s);return;
+  }
+  const{jsPDF}=window.jspdf;
   const avgs=PILARS.map((_,i)=>avg(i));
   const ov=Math.round(overallAvg()*10);
   const now=new Date();
   const dateStr=`${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`;
-  const ovLabel=ov<=30?'Péssimo':ov<=50?'Ruim':ov<=70?'Mediano':ov<=90?'Bom':'Excelente';
-  const ovDesc=ov<=50?'esforço sem sistema; há pontos críticos a resolver.':ov<=70?'estrutura em construção; alguns pilares precisam de atenção.':'boa base instalada; foco em escalar e otimizar.';
+
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const W=210,H=297,ML=18,MR=18,CW=W-ML-MR;
+  const BG=[6,23,40],BG2=[10,37,64],BLUE=[0,155,255],WHITE=[244,246,248];
+  const MUTED=[138,155,176],RED=[224,85,85],ORANGE=[212,135,46],YELLOW=[201,169,110],GBLU=[58,122,191],GREEN=[61,158,109];
+  let page=1;
+
+  function sf(r,g,b){doc.setFillColor(r,g,b);}
+  function sd(r,g,b){doc.setDrawColor(r,g,b);}
+  function st(r,g,b){doc.setTextColor(r,g,b);}
+  function sfont(style,size){doc.setFont('helvetica',style);doc.setFontSize(size);}
+
+  function barColArr(a){
+    if(a<=3)return RED;if(a<=5)return ORANGE;
+    if(a<=7)return YELLOW;if(a<=9)return GBLU;return GREEN;
+  }
+  function badgeTxt(a){
+    if(a<=3)return'Péssimo';if(a<=5)return'Ruim';
+    if(a<=7)return'Mediano';if(a<=9)return'Bom';return'Excelente';
+  }
+  function ovLabel(p){
+    if(p<=30)return'Péssimo';if(p<=50)return'Ruim';
+    if(p<=70)return'Mediano';if(p<=90)return'Bom';return'Excelente';
+  }
+  function ovDesc(p){
+    if(p<=50)return'esforço sem sistema; há pontos críticos a resolver.';
+    if(p<=70)return'estrutura em construção; alguns pilares precisam de atenção.';
+    return'boa base instalada; foco em escalar e otimizar.';
+  }
+
+  function drawBG(){
+    sf(...BG);doc.rect(0,0,W,H,'F');
+    // top accent bar
+    sf(...BLUE);doc.rect(0,0,W,1.2,'F');
+    // corner marks top-right
+    sf(...BLUE);doc.setGState(doc.GState({opacity:0.25}));
+    doc.rect(W-8,0,8,0.6,'F');doc.rect(W-0.6,0,0.6,8,'F');
+    doc.rect(0,0,8,0.6,'F');doc.rect(0,0,0.6,8,'F');
+    doc.rect(0,H-0.6,8,0.6,'F');doc.rect(0,H-8,0.6,8,'F');
+    doc.rect(W-8,H-0.6,8,0.6,'F');doc.rect(W-0.6,H-8,0.6,8,'F');
+    doc.setGState(doc.GState({opacity:1}));
+  }
+  function drawFooter(){
+    sf(...BLUE);doc.setGState(doc.GState({opacity:0.2}));
+    doc.rect(ML,H-13,CW,0.5,'F');doc.setGState(doc.GState({opacity:1}));
+    sfont('bold',6.5);st(...BLUE);doc.text('Rise Alta Conversão',ML,H-7);
+    sfont('normal',6.5);st(...MUTED);
+    doc.text('Everton Moreira · Estrategista Comercial  ·  Documento Confidencial',ML+38,H-7);
+    doc.text('Pág. '+page,W-MR,H-7,{align:'right'});
+  }
+  function drawCard(x,y,w,h){
+    sf(...BG2);doc.roundedRect(x,y,w,h,2,2,'F');
+    sf(...BLUE);doc.setGState(doc.GState({opacity:0.7}));
+    doc.rect(x,y,w,0.9,'F');doc.setGState(doc.GState({opacity:1}));
+    sd(...BLUE);doc.setLineWidth(0.1);doc.setGState(doc.GState({opacity:0.12}));
+    doc.roundedRect(x,y,w,h,2,2,'S');doc.setGState(doc.GState({opacity:1}));
+  }
+  function drawPBar(x,y,w,h,pct,clr){
+    sf(...BG2);doc.roundedRect(x,y,w,h,1,1,'F');
+    if(pct>0){sf(...clr);doc.roundedRect(x,y,Math.max(2,(pct/100)*w),h,1,1,'F');}
+  }
+  function addPage(){
+    doc.addPage();page++;drawBG();drawFooter();return 18;
+  }
+
+  // ═══ PAGE 1 ═══
+  drawBG();drawFooter();
+  let y=18;
+
+  // Eyebrow
+  sfont('bold',7.5);st(...BLUE);
+  doc.text('RISE ALTA CONVERSÃO · PROCESSO ESTRATÉGICO CONFIDENCIAL',ML,y);
+  sfont('normal',7.5);st(...MUTED);
+  doc.text(dateStr,W-MR,y,{align:'right'});
+  y+=10;
+
+  // Title
+  sfont('bold',28);st(...WHITE);doc.text('Diagnóstico Estratégico',ML,y);y+=6;
+  sf(...BLUE);doc.rect(ML,y,28,0.8,'F');y+=10;
+
+  // Score box
+  const scH=26;drawCard(ML,y,CW,scH);
+  sf(...ORANGE);doc.setGState(doc.GState({opacity:0.9}));
+  sfont('bold',22);st(...ORANGE);doc.text(ov+'%',ML+8,y+scH/2+4);
+  doc.setGState(doc.GState({opacity:1}));
+  sfont('bold',9);st(...WHITE);doc.text('Pontuação geral do diagnóstico estratégico',ML+28,y+10);
+  sfont('normal',8);st(...MUTED);doc.text(ovLabel(ov)+' — '+ovDesc(ov),ML+28,y+18);
+  y+=scH+12;
+
+  // Section: Resultado por Pilar
+  sfont('bold',10);st(...WHITE);doc.text('Resultado por Pilar Estratégico',ML,y);
+  sf(...YELLOW);doc.rect(ML,y+2,32,0.6,'F');y+=9;
+
+  // Pilar bars (left col) + gargalos (right col)
+  const leftW=CW*0.62,rightW=CW*0.35,rightX=ML+leftW+CW*0.03;
+
+  // Sort for gargalos (worst first)
   const sorted=[...avgs.map((v,i)=>({v,i}))].sort((a,b)=>a.v-b.v);
   const top3=sorted.slice(0,3);
 
-  function barColor(a){if(a<=3)return'#e05555';if(a<=5)return'#d4872e';if(a<=7)return'#c9a96e';if(a<=9)return'#3a7abf';return'#3d9e6d';}
-  function badgeTxt(a){if(a<=3)return'Péssimo';if(a<=5)return'Ruim';if(a<=7)return'Mediano';if(a<=9)return'Bom';return'Excelente';}
+  // Pilares
+  const pilarY=y;
+  PILARS.forEach((name,i)=>{
+    const a=avgs[i],p=Math.round(a*10),clr=barColArr(a),bt=badgeTxt(a);
+    const rowH=13;
+    sfont('normal',8);st(192,208,226);doc.text(name,ML,y+5);
+    sfont('bold',8);st(...clr);
+    doc.text(`${a.toFixed(1)}/10  ${p}%  ${bt}`,ML+leftW,y+5,{align:'right'});
+    drawPBar(ML,y+7,leftW,3,p,clr);
+    y+=rowH;
+  });
+  const pilarEndY=y;
 
-  const pilarRows=PILARS.map((name,i)=>{
-    const a=avgs[i];const p=Math.round(a*10);const bc=barColor(a);const bt=badgeTxt(a);
-    return`<div style="margin-bottom:18px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <span style="font-size:13px;color:#c0c8d8;">${name}</span>
-        <span style="font-size:13px;font-weight:700;color:${bc};">${a.toFixed(1)}/10 &nbsp; ${p}% &nbsp; ${bt}</span>
-      </div>
-      <div style="height:5px;background:#1a2d46;border-radius:2px;"><div style="height:100%;width:${p}%;background:${bc};border-radius:2px;"></div></div>
-    </div>`;
-  }).join('');
+  // Gargalos box (right side, aligned with pilar section)
+  let ry=pilarY;
+  const gargBoxH=pilarEndY-pilarY;
+  drawCard(rightX,ry,rightW,gargBoxH);
+  sfont('bold',7);st(...MUTED);doc.text('Principais gargalos:',rightX+5,ry+7);
+  ry+=12;
+  top3.forEach((item,rank)=>{
+    const a=item.v,clr=barColArr(a),bt=badgeTxt(a),p=Math.round(a*10);
+    sfont('bold',8);st(...clr);
+    doc.text(`${PILARS[item.i]}  ${a.toFixed(1)}/10`,rightX+5,ry+4);
+    sfont('normal',7);st(...MUTED);
+    const snippet=diagText(item.i,a).substring(0,65)+'...';
+    const snipL=doc.splitTextToSize(snippet,rightW-10);
+    doc.text(snipL.slice(0,2),rightX+5,ry+9,{lineHeightFactor:1.5});
+    ry+=snipL.slice(0,2).length*4+12;
+  });
 
-  const gargaloRows=top3.map((item,rank)=>{
-    const a=item.v;const bc=barColor(a);const bt=badgeTxt(a);
-    const labels=['Recorrência e Retenção','Captação e Tráfego','Indicadores e Métricas'];
-    const rankNames=['Recorrência e Retenção','Captação e Tráfego','Indicadores e Métricas'];
-    return`<div style="margin-bottom:14px;padding:16px 18px;border-left:3px solid ${bc};background:#111e30;border:1px solid #1a2d46;border-left:3px solid ${bc};">
-      <div style="font-size:11px;font-weight:700;color:${bc};letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;">${['GARGALO CRÍTICO','GARGALO IMPORTANTE','PONTO DE ATENÇÃO'][rank]}</div>
-      <div style="font-size:16px;font-weight:700;color:#f0f0f0;margin-bottom:10px;">${PILARS[item.i]}</div>
-      <div style="height:3px;background:#1a2d46;margin-bottom:6px;"><div style="height:100%;width:${Math.round(a*10)}%;background:${bc};"></div></div>
-      <div style="font-size:11px;color:#6b7d99;margin-bottom:8px;">${a.toFixed(1)}/10 · ${Math.round(a*10)}%</div>
-      <div style="font-size:12px;color:#8a9ab5;line-height:1.65;">${diagText(item.i,a)}</div>
-    </div>`;
-  }).join('');
+  y=Math.max(pilarEndY,ry)+10;
 
-  const feedbackRows=PILARS.map((name,i)=>{
-    const a=avgs[i];const bc=barColor(a);const bt=badgeTxt(a);
-    return`<div style="margin-bottom:12px;padding:14px 18px;border-left:3px solid ${bc};background:#111e30;border:1px solid #1a2d46;border-left:3px solid ${bc};">
-      <div style="font-size:13px;font-weight:700;color:${bc};margin-bottom:4px;">${name}<span style="font-size:11px;color:#8a9ab5;margin-left:8px;">${bt} · ${a.toFixed(1)}/10</span></div>
-      <div style="font-size:12px;color:#8a9ab5;line-height:1.65;">${diagText(i,a)}</div>
-    </div>`;
-  }).join('');
+  // ═══ RADAR - on same page if room, else new page ═══
+  const radarSz=85;
+  if(y+radarSz+20>H-22){y=addPage();y=18;}
 
-  const w=window.open('','_blank');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <title>Diagnóstico Estratégico — Rise Alta Conversão</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-    *{margin:0;padding:0;box-sizing:border-box;}
-    body{background:#0b1120;color:#f0f0f0;font-family:'Inter',sans-serif;padding:48px;}
-    .header{border-bottom:1px solid #1a2d46;padding-bottom:24px;margin-bottom:32px;}
-    .main-title{font-size:32px;font-weight:800;color:#f0f0f0;margin-bottom:6px;}
-    .sub-line{font-size:12px;color:#6b7d99;letter-spacing:1px;}
-    .date{font-size:12px;color:#6b7d99;float:right;margin-top:-32px;}
-    .score-box{background:#111e30;border:1px solid #1a2d46;padding:24px 28px;margin-bottom:32px;display:flex;align-items:center;gap:24px;}
-    .score-pct{font-size:52px;font-weight:800;color:#d4872e;line-height:1;}
-    .score-info h3{font-size:14px;font-weight:700;color:#f0f0f0;margin-bottom:4px;}
-    .score-info p{font-size:13px;color:#8a9ab5;}
-    .section-title{font-size:16px;font-weight:700;color:#f0f0f0;margin-bottom:20px;padding-bottom:8px;border-bottom:2px solid #c9a96e;}
-    .two-col{display:flex;gap:32px;}
-    .col-left{flex:1;}
-    .col-right{width:220px;flex-shrink:0;}
-    .radar-placeholder{background:#111e30;border:1px solid #1a2d46;width:200px;height:200px;display:flex;align-items:center;justify-content:center;color:#6b7d99;font-size:11px;}
-    .footer{margin-top:40px;padding-top:16px;border-top:1px solid #1a2d46;font-size:11px;color:#6b7d99;display:flex;justify-content:space-between;}
-    @media print{body{padding:24px;}@page{margin:0;size:A4;}}
-  </style>
-  </head><body>
-  <div class="header">
-    <div class="date">${dateStr}</div>
-    <div class="main-title">Diagnóstico Estratégico</div>
-    <div class="sub-line">Rise Alta Conversão · Processo Estratégico Confidencial</div>
-  </div>
-  <div class="score-box">
-    <div class="score-pct">${ov}%</div>
-    <div class="score-info"><h3>Pontuação geral do diagnóstico estratégico</h3><p>${ovLabel} — ${ovDesc}</p></div>
-  </div>
-  <div class="section-title">Resultado por Pilar Estratégico</div>
-  <div class="two-col">
-    <div class="col-left">${pilarRows}</div>
-    <div class="col-right">
-      <div style="background:#111e30;border:1px solid #1a2d46;padding:12px;margin-bottom:16px;">
-        <div style="font-size:10px;color:#6b7d99;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Principais gargalos:</div>
-        ${top3.map(item=>{const a=item.v;const bc=barColor(a);return`<div style="margin-bottom:10px;"><div style="font-size:12px;font-weight:700;color:${bc};">${PILARS[item.i]} &nbsp;${a.toFixed(1)}/10</div><div style="font-size:11px;color:#8a9ab5;margin-top:2px;">${diagText(item.i,a).substring(0,80)}...</div></div>`;}).join('')}
-      </div>
-    </div>
-  </div>
-  <div style="margin-top:32px;">
-    <div class="section-title">Feedback por Pilar</div>
-    ${feedbackRows}
-  </div>
-  <div class="footer">
-    <span>Rise Alta Conversão · Everton Moreira · Estrategista Comercial</span>
-    <span>Documento Confidencial</span>
-  </div>
-  </body></html>`);
-  w.document.close();
-  setTimeout(()=>w.print(),800);
+  sfont('bold',10);st(...WHITE);doc.text('Panorama Estratégico',ML,y);
+  sf(...YELLOW);doc.rect(ML,y+2,26,0.6,'F');y+=9;
+
+  // Radar canvas capture
+  const rc=document.getElementById('radarCanvas');
+  if(rc){
+    try{
+      const img=rc.toDataURL('image/png');
+      doc.addImage(img,'PNG',ML+(CW-radarSz)/2,y,radarSz,radarSz);
+    }catch(e){
+      // fallback: draw simple polygon
+      const cx=ML+CW/2,cy=y+radarSz/2,R=radarSz/2-8,n=6;
+      sd(26,45,70);doc.setLineWidth(0.3);
+      [2,4,6,8,10].forEach(r=>{
+        doc.lines([[...Array(n)].map((_,i)=>{const a=(i/n)*Math.PI*2-Math.PI/2;return[(r/10)*R*Math.cos(a),(r/10)*R*Math.sin(a)];}).flat()],'',cx,cy,'S',true);
+      });
+    }
+  }
+  y+=radarSz+12;
+
+  // ═══ PAGE 2+ — FEEDBACK POR PILAR ═══
+  if(y+30>H-22){y=addPage();y=18;}
+  sfont('bold',10);st(...WHITE);doc.text('Feedback por Pilar',ML,y);
+  sf(...YELLOW);doc.rect(ML,y+2,20,0.6,'F');y+=12;
+
+  const LH=4.8;
+  // Sort worst-first for feedback
+  const fbSorted=[...avgs.map((v,i)=>({v,i}))].sort((a,b)=>a.v-b.v);
+
+  fbSorted.forEach(item=>{
+    const i=item.i,a=item.v,clr=barColArr(a),bt=badgeTxt(a),p=Math.round(a*10);
+    const txt=diagText(i,a);
+    sfont('normal',8);
+    const txtLines=doc.splitTextToSize(txt,CW-20);
+    const cardH=txtLines.length*LH+26;
+
+    if(y+cardH>H-22){y=addPage();y=18;}
+
+    // Card with left border color
+    sf(...BG2);doc.roundedRect(ML,y,CW,cardH,2,2,'F');
+    sf(...clr);doc.rect(ML,y,3,cardH,'F');
+    sd(...BLUE);doc.setLineWidth(0.1);doc.setGState(doc.GState({opacity:0.1}));
+    doc.roundedRect(ML,y,CW,cardH,2,2,'S');doc.setGState(doc.GState({opacity:1}));
+
+    // Header line: pilar name + badge + score
+    sfont('bold',9);st(...clr);doc.text(PILARS[i],ML+7,y+8);
+    // Badge
+    const badgeX=ML+7+doc.getTextWidth(PILARS[i])+4;
+    sf(...clr);doc.setGState(doc.GState({opacity:0.15}));
+    doc.roundedRect(badgeX,y+3,doc.getTextWidth(bt)+8,5.5,1,1,'F');
+    doc.setGState(doc.GState({opacity:1}));
+    sfont('bold',6.5);st(...clr);doc.text(bt,badgeX+4,y+7.5);
+    sfont('bold',9);st(...MUTED);doc.text(`${a.toFixed(1)}/10`,W-MR,y+8,{align:'right'});
+
+    // Progress bar
+    drawPBar(ML+7,y+11,CW-14,2.5,p,clr);
+
+    // Feedback text
+    sfont('normal',8);st(185,210,230);
+    doc.text(txtLines,ML+7,y+18,{lineHeightFactor:1.65});
+
+    y+=cardH+8;
+  });
+
+  // Save
+  const ds=new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
+  doc.save(`Diagnostico-Rise-AltaConversao-${ds}.pdf`);
 }
 
 // ── NAVIGATION ──
