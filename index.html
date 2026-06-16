@@ -279,6 +279,18 @@ html,body{height:100%;background:var(--bg);color:var(--white);font-family:'Inter
 .opp-sub2{font-size:11px;color:var(--muted);margin-top:6px;}
 .opp-warn{font-size:12px;color:var(--muted);text-align:center;margin-top:24px;padding-top:18px;border-top:1px solid var(--border);}
 
+.pr-action-lbl{
+  font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--gold);margin-top:14px;margin-bottom:6px;
+  padding-top:12px;border-top:1px solid var(--border);
+}
+.pr-action{
+  font-size:12.5px;color:var(--white);line-height:1.7;
+  padding:12px 14px;
+  background:rgba(201,169,110,.06);
+  border-left:2px solid var(--gold);
+}
+
 /* scrollbar */
 ::-webkit-scrollbar{width:3px;}
 ::-webkit-scrollbar-track{background:transparent;}
@@ -767,14 +779,65 @@ function avg(pi){const v=SC[pi].filter(x=>x!==null);return v.length?v.reduce((a,
 function overallAvg(){return PILARS.map((_,i)=>avg(i)).reduce((a,b)=>a+b,0)/PILARS.length;}
 function badge(a){if(a<=3)return{lbl:'Péssimo',cls:'b-pessimo'};if(a<=5)return{lbl:'Ruim',cls:'b-ruim'};if(a<=7)return{lbl:'Mediano',cls:'b-mediano'};if(a<=9)return{lbl:'Bom',cls:'b-bom'};return{lbl:'Excelente',cls:'b-excelente'};}
 const DIAG=[
-  {p:'A clínica ainda não tem posicionamento reconhecível. Não existe diferenciação clara e os médicos não constroem autoridade pública.',r:'Existe alguma noção de posicionamento, mas raramente chega ao paciente de forma clara. Cases e depoimentos aparecem de forma esporádica.',m:'Existe alguma noção de posicionamento, mas não está estruturado nem comunicado de forma consistente. Cases reais, depoimentos e especialização visível precisam aparecer em todos os pontos de contato.',b:'O posicionamento está sendo construído e já gera algum reconhecimento. O próximo passo é sistematizar e escalar a comunicação de autoridade em todos os canais.',e:'Posicionamento consolidado. A clínica é reconhecida como referência, cobra premium com naturalidade e os médicos têm autoridade construída publicamente.'},
-  {p:'Não existe processo comercial estruturado. O atendimento é reativo, não há previsibilidade de receita e leads saem sem fechamento.',r:'Há algum processo, mas com etapas confusas e dependência de improviso. O funil vaza em múltiplos pontos.',m:'O funil existe, mas vaza leads em alguma etapa. Mapeie onde os pacientes desistem, identifique objeções recorrentes e crie abordagens específicas para cada momento de decisão.',b:'O funil está funcionando com etapas definidas e previsibilidade começando a aparecer. Refine os pontos de objeção e padronize os scripts de fechamento para escalar.',e:'Funil estruturado, previsível e com taxa de conversão monitorada. O paciente é conduzido com método do primeiro contato ao fechamento.'},
-  {p:'A clínica depende exclusivamente de indicações espontâneas. Não há tráfego pago ativo e o fluxo de leads é completamente imprevisível.',r:'Há algum investimento em captação, mas sem estratégia clara, sem métricas e sem diversificação de canais.',m:'Há algum investimento em captação, mas sem controle real de métricas. Implante rastreamento de conversão, monitore CPL e CAC por canal e diversifique as fontes.',b:'Campanhas ativas com algumas métricas acompanhadas. O próximo passo é otimizar custos por canal e criar uma estratégia multicanal mais robusta.',e:'Captação multicanal funcionando com métricas em tempo real. CPL e CAC conhecidos e campanhas otimizadas.'},
-  {p:'Não existe time comercial. O próprio médico faz tudo — atende, apresenta proposta e tenta fechar. Isso limita volume e conversão.',r:'Há pessoas envolvidas no atendimento, mas sem papéis definidos, sem scripts e sem treinamento comercial.',m:'Existe um time, mas sem scripts, metas claras ou processo de onboarding. Estruture o processo seletivo, defina KPIs individuais e implante reuniões semanais de acompanhamento.',b:'Time estruturado com papéis definidos e scripts existentes. As metas estão claras e o acompanhamento está sendo feito com regularidade.',e:'Time comercial de alta performance com SDR e Closer definidos, scripts validados e rituais semanais estabelecidos.'},
-  {p:'Nenhuma métrica comercial é acompanhada. Decisões são tomadas no feeling, sem dados sobre conversão, ticket médio ou origem dos pacientes.',r:'Algumas informações são registradas, mas de forma inconsistente. Não é possível tomar decisões estratégicas com base nos dados disponíveis.',m:'Algumas métricas são acompanhadas, mas não norteiam decisões. Estabeleça uma rotina semanal de revisão de KPIs e defina metas mensais claras para cada área.',b:'KPIs principais estão definidos e acompanhados. O próximo passo é conectar os dados ao processo de decisão estratégica de forma mais sistemática.',e:'Indicadores comerciais em tempo real, decisões orientadas por dados, LTV calculado e aquisição mapeada por canal.'},
-  {p:'Não existe nenhuma estratégia de retenção. O paciente some após o procedimento e a clínica precisa conquistar sempre do zero.',r:'Há algum contato após o atendimento, mas sem protocolo definido. Não existe programa de indicações e os inativos não são reativados.',m:'Há algum contato pós-consulta, mas de forma informal e inconsistente. Formalize o protocolo de reativação com cadência definida e crie um programa estruturado de incentivo a indicações.',b:'Existe algum processo de pós-atendimento. O próximo passo é formalizar a cadência de reativação e criar um programa de indicações com benefícios claros.',e:'Protocolo de retenção ativo, programa de indicações funcionando e esteira de serviços que mantém o paciente engajado.'}
+  // 0 — Posicionamento
+  {
+    p:'A clínica não tem posicionamento reconhecível no mercado. Não existe diferenciação clara, a proposta de valor nunca foi definida e os médicos não constroem autoridade pública. O paciente não consegue entender por que deveria escolher você no lugar de qualquer outro profissional.\n\nO que precisa ser feito: definir a proposta de valor única da clínica, construir a narrativa de especialização dos médicos e criar uma identidade visual e verbal consistente que comunique diferenciação em todos os pontos de contato com o paciente.',
+    r:'Existe alguma noção de posicionamento, mas ela não chega ao paciente de forma clara ou consistente. A comunicação é fragmentada, os médicos ainda não se apresentam como autoridades e a clínica compete por preço em vez de valor.\n\nO que precisa ser feito: estruturar a proposta de valor da clínica, mapear os diferenciais reais e criar um plano de comunicação de autoridade com cases, depoimentos e prova social visível em todos os canais.',
+    m:'A clínica tem algum posicionamento, mas ele não está documentado nem comunicado de forma consistente. Em alguns momentos a mensagem chega certa, em outros não — e o paciente percebe essa inconsistência.\n\nO que precisa ser feito: documentar o posicionamento da clínica em um único guia de identidade, garantir que todos os pontos de contato comuniquem o mesmo diferencial e estruturar a autoridade dos médicos com conteúdo e prova social regulares.',
+    b:'O posicionamento existe e é reconhecido, mas ainda depende de esforço pessoal dos médicos para se sustentar. A comunicação de autoridade ainda não é sistemática e escalável.\n\nO que precisa ser feito: transformar o posicionamento em um sistema que funcione de forma autônoma, com conteúdo de autoridade planejado, parcerias estratégicas e presença ativa nos canais onde o paciente ideal está.',
+    e:'Posicionamento consolidado e reconhecido pelo mercado. A clínica cobra premium com naturalidade e os médicos têm autoridade construída publicamente.\n\nO que precisa ser feito: manter e ampliar o alcance do posicionamento com estratégias de expansão de audiência e novos canais de autoridade.'
+  },
+  // 1 — Funil de Vendas
+  {
+    p:'Não existe nenhum processo comercial. O atendimento acontece de forma completamente improvisada, cada profissional faz do seu jeito e os leads que chegam saem sem receber uma proposta estruturada. A clínica perde pacientes todos os dias sem perceber.\n\nO que precisa ser feito: mapear e definir as etapas do processo de atendimento, do primeiro contato ao fechamento; criar scripts de abordagem para cada etapa; implementar um funil com responsabilidades claras e pontos de decisão definidos.',
+    r:'Há algum processo de atendimento, mas ele é inconsistente e depende de improviso. O funil vaza em múltiplos pontos e não existe como prever quantos pacientes vão fechar no próximo mês.\n\nO que precisa ser feito: identificar onde os leads estão sendo perdidos dentro do processo atual; padronizar o atendimento com roteiro de qualificação e apresentação de proposta; e criar métricas mínimas de acompanhamento de conversão.',
+    m:'O funil existe, mas vaza leads em alguma etapa específica. O processo está desenhado mas não está funcionando com consistência suficiente para gerar previsibilidade de faturamento.\n\nO que precisa ser feito: mapear com precisão onde os pacientes estão desistindo; identificar as objeções mais recorrentes em cada etapa; e construir respostas estruturadas e scripts específicos para cada momento de decisão do paciente.',
+    b:'O funil está funcionando com etapas definidas e começa a gerar previsibilidade. O processo existe, mas ainda tem pontos de vazamento que impedem a escala.\n\nO que precisa ser feito: refinar os scripts de fechamento, reduzir o tempo médio de ciclo de vendas e implementar rotinas de revisão semanal de conversão por etapa para identificar onde o funil ainda perde.',
+    e:'Funil estruturado, previsível e com taxa de conversão monitorada. O paciente é conduzido com método do primeiro contato ao fechamento.\n\nO que precisa ser feito: documentar o processo para que funcione sem depender de pessoas específicas e criar dashboards de acompanhamento em tempo real.'
+  },
+  // 2 — Captação e Tráfego
+  {
+    p:'A clínica depende exclusivamente de indicações espontâneas. Não há nenhuma estratégia ativa de captação, o CPL e o CAC são desconhecidos e o fluxo de novos pacientes é completamente imprevisível. A receita do próximo mês é uma incógnita.\n\nO que precisa ser feito: estruturar a primeira estratégia de captação ativa com canais definidos, públicos mapeados e investimento mínimo controlado; implementar rastreamento de origem dos leads; e definir metas de volume de leads mensais.',
+    r:'Há algum investimento em captação, mas sem estratégia clara, sem diversificação de canais e sem métricas reais de retorno. O resultado varia muito e não existe como controlar o volume de novos pacientes.\n\nO que precisa ser feito: definir o canal de captação principal com base no perfil do paciente ideal; implementar rastreamento de conversão para entender o retorno real de cada canal; e criar uma rotina de revisão semanal dos indicadores de captação.',
+    m:'Existe investimento em captação, mas sem controle efetivo das métricas. Não se sabe com precisão quantos leads cada canal gera, qual o custo por lead e qual canal converte melhor.\n\nO que precisa ser feito: implementar rastreamento de conversão em todos os canais ativos; monitorar CPL e CAC por fonte; diversificar as origens de captação para reduzir a dependência de um único canal; e criar uma rotina de otimização das campanhas.',
+    b:'Campanhas ativas e algumas métricas acompanhadas, mas ainda há canais não explorados e oportunidade de redução de custos por otimização.\n\nO que precisa ser feito: otimizar os canais atuais com base nos dados de CPL e CAC; ativar novos canais de captação complementares; e criar uma estratégia de conteúdo orgânico que reduza a dependência de tráfego pago.',
+    e:'Captação multicanal funcionando com métricas em tempo real. CPL e CAC conhecidos, campanhas otimizadas e múltiplas fontes de leads ativas.\n\nO que precisa ser feito: escalar os canais que apresentam melhor retorno e testar novos formatos de captação para ampliar o volume sem aumentar proporcionalmente o custo.'
+  },
+  // 3 — Time Comercial
+  {
+    p:'Não existe time comercial. O próprio médico atende, qualifica, apresenta proposta e tenta fechar — quando não está em consulta. Isso cria um gargalo humano que limita radicalmente o volume de pacientes e a taxa de conversão.\n\nO que precisa ser feito: definir os papéis comerciais que precisam existir na clínica; estruturar o processo de contratação e onboarding de SDR e Closer; criar os scripts de atendimento iniciais; e definir metas e comissões para cada função.',
+    r:'Há pessoas envolvidas no atendimento, mas sem papéis comerciais definidos, sem scripts padronizados e sem treinamento. Cada pessoa faz do seu jeito e o resultado depende da personalidade individual.\n\nO que precisa ser feito: definir claramente quem faz o quê no processo comercial; criar scripts de atendimento, qualificação e apresentação de proposta; implementar um processo básico de treinamento e acompanhamento de desempenho.',
+    m:'Existe um time, mas sem scripts validados, sem metas claras e sem processo de onboarding estruturado. O desempenho é inconsistente porque faltam as ferramentas mínimas para que a equipe execute com qualidade.\n\nO que precisa ser feito: estruturar o processo seletivo para os papéis comerciais; criar scripts completos de SDR e Closer; definir KPIs individuais com metas mensuráveis; e implementar reuniões semanais de acompanhamento de resultados.',
+    b:'Time com papéis definidos e scripts existentes, mas ainda com inconsistências na execução. As metas existem, mas o acompanhamento precisa ser mais sistemático.\n\nO que precisa ser feito: refinar os scripts com base nas objeções mais frequentes; criar rituais semanais de treinamento e feedback; e implementar um dashboard de desempenho individual para cada membro da equipe.',
+    e:'Time comercial de alta performance com SDR e Closer definidos, scripts validados e rituais de acompanhamento estabelecidos.\n\nO que precisa ser feito: documentar os processos para garantir a replicabilidade e criar um plano de expansão do time sem perda de qualidade.'
+  },
+  // 4 — Indicadores e Métricas
+  {
+    p:'Nenhuma métrica comercial é acompanhada. Todas as decisões são tomadas no feeling, sem dados sobre conversão, ticket médio, CPL, CAC ou origem dos pacientes. A clínica não sabe o que está funcionando e o que não está.\n\nO que precisa ser feito: definir os indicadores comerciais mínimos que precisam ser monitorados; criar um dashboard básico com volume de leads, consultas agendadas, taxa de fechamento e ticket médio; e estabelecer uma rotina semanal de revisão desses números.',
+    r:'Algumas informações são registradas, mas de forma inconsistente e sem estrutura. Os dados existem em lugares diferentes e não há como usar essas informações para tomar decisões estratégicas.\n\nO que precisa ser feito: centralizar os dados comerciais em uma única ferramenta; padronizar o registro de informações por toda a equipe; e criar relatórios semanais mínimos com os KPIs mais importantes.',
+    m:'Algumas métricas são acompanhadas, mas elas não chegam a nortear decisões. Os números existem, mas ninguém age com base neles de forma consistente.\n\nO que precisa ser feito: estabelecer uma rotina semanal de revisão de KPIs com toda a equipe; definir metas mensais claras por indicador; e criar o hábito de tomar decisões baseadas em dados em vez de intuição.',
+    b:'KPIs definidos e acompanhados, mas ainda desconectados do processo de decisão estratégica. Os dados estão lá, mas nem sempre influenciam as ações da equipe.\n\nO que precisa ser feito: criar um processo formal de tomada de decisão baseado em dados; implementar metas de melhoria contínua por indicador; e conectar os KPIs comerciais ao planejamento financeiro da clínica.',
+    e:'Indicadores em tempo real, decisões orientadas por dados e LTV calculado por procedimento.\n\nO que precisa ser feito: automatizar a geração de relatórios e criar alertas automáticos para variações fora do padrão esperado.'
+  },
+  // 5 — Recorrência e Retenção
+  {
+    p:'Não existe nenhuma estratégia de retenção. Cada paciente atendido some após o procedimento sem nenhum contato posterior. A clínica começa do zero todo mês e depende inteiramente de novos pacientes para faturar.\n\nO que precisa ser feito: criar um protocolo mínimo de pós-atendimento com contatos em D+7, D+30 e D+90; mapear quais pacientes têm potencial de retorno ou indicação; e estruturar um programa básico de indicações com benefícios claros.',
+    r:'Há algum contato após o atendimento, mas sem protocolo definido, sem cadência e sem responsável claro. O follow-up acontece quando alguém lembra, não como parte de um sistema.\n\nO que precisa ser feito: definir o protocolo formal de pós-atendimento com etapas, responsáveis e cadência; implementar um processo de reativação de pacientes inativos com abordagem estruturada; e criar um programa de indicações com incentivos definidos.',
+    m:'Existe algum contato pós-consulta, mas de forma informal e inconsistente. Não há um programa de indicações estruturado e a reativação de inativos é feita de forma esporádica.\n\nO que precisa ser feito: formalizar o protocolo de pós-atendimento com cadência definida; criar um programa de indicações com regras claras e benefícios atrativos; e implementar um processo regular de reativação de pacientes que não retornam há mais de 90 dias.',
+    b:'Processo de pós-atendimento existente, mas ainda sem programa de indicações estruturado e sem esteira de serviços que gere recorrência.\n\nO que precisa ser feito: criar um programa de indicações com benefícios documentados e comunicados ativamente; desenvolver uma esteira de serviços ou procedimentos complementares que mantenha o paciente engajado; e medir o NPS e a taxa de retorno mensalmente.',
+    e:'Protocolo de retenção ativo, programa de indicações funcionando e esteira de serviços gerando recorrência previsível.\n\nO que precisa ser feito: automatizar as réguas de comunicação pós-atendimento e escalar o programa de indicações para aumentar o volume de pacientes gerados por essa fonte.'
+  }
 ];
 function diagText(pi,a){const t=DIAG[pi];if(a<=3)return t.p;if(a<=5)return t.r;if(a<=7)return t.m;if(a<=9)return t.b;return t.e;}
+
+// Split raw text into {problem, action} parts
+function diagParts(pi,a){
+  const raw=diagText(pi,a);
+  const sep='\n\nO que precisa ser feito: ';
+  const idx=raw.indexOf(sep);
+  if(idx>=0) return{problem:raw.slice(0,idx), action:raw.slice(idx+sep.length)};
+  return{problem:raw, action:''};
+}
 
 const CUSTO_DATA=[
   {stat:n=>`~${Math.round((10-n)*3+10)}%`,desc:'do potencial de posicionamento sendo aproveitado pela clínica'},
@@ -814,7 +877,12 @@ function renderResults(){
   }).join('');
   const cards=PILARS.map((name,i)=>{
     const a=avgs[i];const b=badge(a);
-    return`<div class="pr-card"><div class="pr-hdr"><div class="pr-name">${name}</div><div class="badge ${b.cls}">${b.lbl} — ${a.toFixed(1)}/10</div></div><div class="pr-text">${diagText(i,a)}</div></div>`;
+    const parts=diagParts(i,a);
+    return`<div class="pr-card">
+      <div class="pr-hdr"><div class="pr-name">${name}</div><div class="badge ${b.cls}">${b.lbl} — ${a.toFixed(1)}/10</div></div>
+      <div class="pr-text">${parts.problem}</div>
+      ${parts.action?`<div class="pr-action-lbl">O que precisa ser feito</div><div class="pr-action">${parts.action}</div>`:''}
+    </div>`;
   }).join('');
   document.getElementById('resultsMain').innerHTML=`<div class="bar-section">${barsHTML}</div><div class="needs-title">O que precisa melhorar</div>${cards}`;
   drawRadar(avgs);
@@ -859,7 +927,8 @@ function renderGargalos(avgs){
   const cols=['var(--red)','var(--orange)','var(--yellow)'];
   document.getElementById('gargalosWrap').innerHTML=top3.map((item,rank)=>{
     const a=item.v,p=Math.round(a*10),b=badge(a);
-    return`<div class="gc-card ${clss[rank]}"><div class="gc-tag">${tags[rank]}</div><div class="gc-name">${PILARS[item.i]}</div><div class="gc-bar-track"><div style="height:3px;background:${cols[rank]};width:${p}%"></div></div><div class="gc-bar-info">${a.toFixed(1)}/10 · ${p}%</div><div class="gc-text">→ ${b.lbl} — ${diagText(item.i,a)}</div></div>`;
+    const parts=diagParts(item.i,a);
+    return`<div class="gc-card ${clss[rank]}"><div class="gc-tag">${tags[rank]}</div><div class="gc-name">${PILARS[item.i]}</div><div class="gc-bar-track"><div style="height:3px;background:${cols[rank]};width:${p}%"></div></div><div class="gc-bar-info">${a.toFixed(1)}/10 · ${p}%</div><div class="gc-text">${parts.problem}</div>${parts.action?`<div class="pr-action-lbl" style="margin-top:12px;">O que precisa ser feito</div><div class="pr-action">${parts.action}</div>`:''}</div>`;
   }).join('');
 }
 
@@ -1043,35 +1112,66 @@ function exportPDF(){
 
   fbSorted.forEach(item=>{
     const i=item.i,a=item.v,clr=barColArr(a),bt=badgeTxt(a),p=Math.round(a*10);
-    const txt=diagText(i,a);
+    const raw=diagText(i,a);
+    const sep='\n\nO que precisa ser feito: ';
+    const sepIdx=raw.indexOf(sep);
+    const probTxt=sepIdx>=0?raw.slice(0,sepIdx):raw;
+    const actionTxt=sepIdx>=0?raw.slice(sepIdx+sep.length):'';
+
     sfont('normal',8);
-    const txtLines=doc.splitTextToSize(txt,CW-20);
-    const cardH=txtLines.length*LH+26;
+    const probLines=doc.splitTextToSize(probTxt,CW-20);
+    const actionLines=actionTxt?doc.splitTextToSize(actionTxt,CW-26):[];
+
+    const H_HEAD=16;
+    const H_BAR=7;
+    const H_PROB=probLines.length*LH+6;
+    const H_ACTION_LABEL=actionTxt?10:0;
+    const H_ACTION_BOX=actionTxt?actionLines.length*LH+12:0;
+    const H_PAD=6;
+    const cardH=H_HEAD+H_BAR+H_PROB+H_ACTION_LABEL+H_ACTION_BOX+H_PAD;
 
     if(y+cardH>H-22){y=addPage();y=18;}
 
-    // Card with left border color
+    // Card
     sf(...BG2);doc.roundedRect(ML,y,CW,cardH,2,2,'F');
     sf(...clr);doc.rect(ML,y,3,cardH,'F');
     sd(...BLUE);doc.setLineWidth(0.1);doc.setGState(doc.GState({opacity:0.1}));
     doc.roundedRect(ML,y,CW,cardH,2,2,'S');doc.setGState(doc.GState({opacity:1}));
 
-    // Header line: pilar name + badge + score
-    sfont('bold',9);st(...clr);doc.text(PILARS[i],ML+7,y+8);
-    // Badge
+    // Header
+    let cy=y+8;
+    sfont('bold',9);st(...clr);doc.text(PILARS[i],ML+7,cy);
     const badgeX=ML+7+doc.getTextWidth(PILARS[i])+4;
     sf(...clr);doc.setGState(doc.GState({opacity:0.15}));
-    doc.roundedRect(badgeX,y+3,doc.getTextWidth(bt)+8,5.5,1,1,'F');
+    doc.roundedRect(badgeX,cy-4.5,doc.getTextWidth(bt)+8,5.5,1,1,'F');
     doc.setGState(doc.GState({opacity:1}));
-    sfont('bold',6.5);st(...clr);doc.text(bt,badgeX+4,y+7.5);
-    sfont('bold',9);st(...MUTED);doc.text(`${a.toFixed(1)}/10`,W-MR,y+8,{align:'right'});
+    sfont('bold',6.5);st(...clr);doc.text(bt,badgeX+4,cy);
+    sfont('bold',9);st(...MUTED);doc.text(`${a.toFixed(1)}/10`,W-MR,cy,{align:'right'});
+    cy+=H_HEAD-8;
 
-    // Progress bar
-    drawPBar(ML+7,y+11,CW-14,2.5,p,clr);
+    // Bar
+    drawPBar(ML+7,cy,CW-14,2.5,p,clr);cy+=H_BAR;
 
-    // Feedback text
+    // Problem text
     sfont('normal',8);st(185,210,230);
-    doc.text(txtLines,ML+7,y+18,{lineHeightFactor:1.65});
+    doc.text(probLines,ML+7,cy,{lineHeightFactor:1.65});
+    cy+=H_PROB;
+
+    // Action section
+    if(actionTxt){
+      // Divider + label
+      sf(...YELLOW);doc.setGState(doc.GState({opacity:0.3}));
+      doc.rect(ML+7,cy,CW-14,0.4,'F');doc.setGState(doc.GState({opacity:1}));
+      cy+=5;
+      sfont('bold',7);st(...YELLOW);doc.text('O QUE PRECISA SER FEITO:',ML+7,cy);
+      cy+=6;
+      // Action box
+      const abH=actionLines.length*LH+8;
+      sf(20,25,40);doc.roundedRect(ML+7,cy-3,CW-14,abH,1.5,1.5,'F');
+      sf(...YELLOW);doc.rect(ML+7,cy-3,2.5,abH,'F');
+      sfont('bold',8);st(240,230,210);
+      doc.text(actionLines,ML+13,cy+2,{lineHeightFactor:1.68});
+    }
 
     y+=cardH+8;
   });
